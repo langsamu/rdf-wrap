@@ -4,17 +4,17 @@
   DatasetCore,
   Literal,
   NamedNode,
+  Quad,
+  Variable
 } from "@rdfjs/types";
 
 export abstract class Wrapper {
-  public term: BlankNode | NamedNode | Literal;
-
-  protected dataset: DatasetCore;
-
-  protected factory: DataFactory;
+  public term;
+  public dataset;
+  public factory;
 
   public constructor(
-    term: BlankNode | NamedNode | Literal,
+    term: BlankNode | NamedNode | Literal | Quad | Variable,
     dataset: DatasetCore,
     factory: DataFactory
   ) {

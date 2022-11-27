@@ -8,7 +8,8 @@ beforeAll(() => {
   const rdf = `
   prefix : <https://example.org/>
   [
-      :singularStringPredicate "o1" ;
+      :singularStringProperty "o1" ;
+      :stringSetProperty "a", "b" ;
       :child [
           :name "name" ;
       ] ;
@@ -29,27 +30,27 @@ beforeAll(() => {
 });
 
 describe("Wrapper", () => {
-  it("has singular string predicate", () => {
+  it("has singular string", () => {
     expect(x.singularStringProperty).toBe("o1");
   });
 
-  it("has child object with name", () => {
-    expect(x.singularProperty.name).toBe("name");
+  // it("has child object with name", () => {
+  //   expect(x.singularProperty.name).toBe("name");
+  // });
+
+  // it("sets singular predicate to different value", () => {
+  //   x.singularStringProperty = "o2";
+  //   expect(x.singularStringProperty).toBe("o2");
+  // });
+
+  it("has strings in initiial dataset", () => {
+    expect(x.stringSetProperty.size).toBe(2);
   });
 
-  it("sets singular predicate to different value", () => {
-    x.singularStringProperty = "o2";
-    expect(x.singularStringProperty).toBe("o2");
-  });
-
-  it("has an empty string set", () => {
-    expect(x.stringSetProperty.size).toBe(0);
-  });
-
-  it("adds to an empty string set", () => {
+  it("adds to strings in original dataset", () => {
     x.stringSetProperty.add("x");
     x.stringSetProperty.add("y");
-    expect(x.stringSetProperty.size).toBe(2);
+    expect(x.stringSetProperty.size).toBe(4);
     expect(x.stringSetProperty.has("x") && x.stringSetProperty.has("y")).toBe(
       true
     );

@@ -1,36 +1,34 @@
 ﻿import type {
-  DataFactory,
-  DatasetCore,
-  Quad_Object,
   BlankNode,
+  Variable,
+  Quad,
   NamedNode,
+  Literal
 } from "@rdfjs/types";
-import { wrap } from "../algorithm/wrap";
-import { TermTypeError } from "../error/term_type_error";
-import type { ILiteralWrapperConstructor } from "../type/i_literal_wrapper_constructor";
-import type { INodeWrapperConstructor } from "../type/i_node_wrapper_constructor";
-import { NodeWrapper } from "./node_wrapper";
+import type { IWrapperConstructor } from "../types/i_wrapper_constructor";
 import type { Wrapper } from "./wrapper";
 
-export class PropertyWrapper<T extends Wrapper>
-  extends NodeWrapper
-  implements Set<T>
-{
-  private property: NamedNode;
-
-  private wrapper: INodeWrapperConstructor<T> | ILiteralWrapperConstructor<T>;
+export class PropertyWrapper<T extends Wrapper> implements Set<T> {
+  public term;
+  protected dataset;
+  protected factory;
+  protected property;
+  protected wrapperFactory;
 
   constructor(
-    term: BlankNode | NamedNode,
-    dataset: DatasetCore,
-    factory: DataFactory,
-    property: NamedNode,
-    // eslint-disable-next-line no-shadow
-    wrapper: INodeWrapperConstructor<T> | ILiteralWrapperConstructor<T>
+    wrapper: Wrapper,
+    property: Variable | NamedNode,
+    wrapperFactory: IWrapperConstructor<T>
   ) {
-    super(term, dataset, factory);
+    if (wrapper.term.termType === "Literal") {
+      throw new Error("Cannot property wrap a Literal Node");
+    }
+
+    this.term = wrapper.term;
+    this.dataset = wrapper.dataset;
+    this.factory = wrapper.factory;
     this.property = property;
-    this.wrapper = wrapper;
+    this.wrapperFactory = wrapperFactory;
   }
 
   public add(value: T | string | number): this {
@@ -100,13 +98,9 @@ export class PropertyWrapper<T extends Wrapper>
         q.object.termType !== "NamedNode" &&
         q.object.termType !== "Literal"
       ) {
-        throw new TermTypeError(
-          q.object.termType,
-          "BlankNode, NamedNode or Literal"
-        );
+        throw new Error("Term must be a BlankNode, NamedNode or Literal");
       }
-      // eslint-disable-next-line new-cap
-      yield wrap(q.object, this.dataset, this.factory, this.wrapper);
+      yield new this.wrapperFactory(q.object, this.dataset, this.factory);
     }
   }
 
@@ -114,7 +108,7 @@ export class PropertyWrapper<T extends Wrapper>
     return `collection wrapper for subject ${this.term.value} predicate ${this.property.value}`;
   }
 
-  private convert(value: T | string | number): Quad_Object {
+  private convert(value: T | string | number): BlankNode | NamedNode | Literal | Quad | Variable {
     switch (typeof value) {
       case "string":
         return this.factory.literal(value);
